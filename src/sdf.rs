@@ -11,9 +11,9 @@ pub trait SDF {
 
 fn Intersects<'a>(v: &Vector, sdfs: &Vec<&'a SDF>) -> Option<Intersection<'a>> {
   let mut min = f32::INFINITY;
-  let nearest = None;
+  let mut nearest = None;
   for sdf in sdfs {
-    let t = find_intersection(sdfs[0], v);
+    let t = find_intersection(sdf, v);
     if t < min {
       min = t;
       nearest = Some(sdf);
