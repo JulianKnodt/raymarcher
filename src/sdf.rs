@@ -1,19 +1,20 @@
-use vector::vector::{Vector, Origin};
+use vector::vector::{Vector, origin};
 use intersection::Intersection;
+use newton::newton;
 
 use std::f32;
 
 // Trait for signed distance fields
 pub trait SDF {
   // Returns distance of v from self
-  fn dist(&self, v: &Vector) -> f32;
+  fn dist(&self, v: Vector) -> f32;
 }
 
-fn Intersects<'a>(v: &Vector, sdfs: &Vec<&'a SDF>) -> Option<Intersection<'a>> {
+fn intersects<'a>(v: &Vector, sdfs: &Vec<&'a SDF>) -> Option<Intersection<'a>> {
   let mut min = f32::INFINITY;
   let mut nearest = None;
-  for sdf in sdfs {
-    let t = find_intersection(sdf, v);
+  for sdf in sdfs.into_iter() {
+    let t = find_intersection(*sdf, v);
     if t < min {
       min = t;
       nearest = Some(sdf);
@@ -23,7 +24,7 @@ fn Intersects<'a>(v: &Vector, sdfs: &Vec<&'a SDF>) -> Option<Intersection<'a>> {
     None => None,
     Some(&v) => Some(Intersection{
       t: min,
-      normal: Origin(), //TODO
+      normal: origin(), //TODO
       intersected: v,
     }),
   }
@@ -31,6 +32,8 @@ fn Intersects<'a>(v: &Vector, sdfs: &Vec<&'a SDF>) -> Option<Intersection<'a>> {
 
 fn find_intersection(sdf: &SDF, v: &Vector) -> f32 {
   // want to find a zero to the function as fast as possible
-  panic!("TODO IMPLEMENT")
+  let parametrized_intersection = |t| sdf.dist(v * t);
+  newton(&parametrized_intersection, 1.0, 0.001)
 }
+
 

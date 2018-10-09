@@ -68,6 +68,18 @@ impl ops::Mul<f32> for Vector {
   }
 }
 
+impl<'a> ops::Mul<f32> for &'a Vector {
+  type Output = Vector;
+
+  fn mul(self, o: f32) -> Vector {
+    Vector {
+      x: self.x * o,
+      y: self.y * o,
+      z: self.z * o,
+    }
+  }
+}
+
 impl ops::Div<f32> for Vector {
   type Output = Vector;
 
@@ -102,6 +114,6 @@ impl Vector {
   }
 }
 
-pub fn Origin() -> Vector {
+pub fn origin() -> Vector {
   Vector{x: 0.0, y: 0.0, z:0.0}
 }

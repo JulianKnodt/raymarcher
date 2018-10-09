@@ -4,3 +4,4 @@ pub mod image;
 pub mod sphere;
 pub mod sdf;
 pub mod intersection;
+pub mod newton;

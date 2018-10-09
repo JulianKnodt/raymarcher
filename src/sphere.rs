@@ -7,7 +7,7 @@ struct Sphere {
 }
 
 impl SDF for Sphere {
-  fn dist(&self, v: &Vector) -> f32 {
+  fn dist(&self, v: Vector) -> f32 {
     (self.location - v).sqr_magn() - self.sqr_radius
   }
 }
