@@ -34,8 +34,8 @@ pub fn bisection(f: RealFn, x0: f32, x1: f32, threshold: f32) -> f32 {
   mid
 }
 
-const EPSILON: f32 = 0.0000000001;
-pub fn newton(f: RealFn, x0: f32, threshold: f32) -> f32 {
+const EPSILON: f32 = 0.000001;
+pub fn newton(f: RealFn, x0: f32, threshold: f32) -> Option<f32> {
   let mut curr = x0;
   let mut curr_val = f(curr);
   let mut iter = 0;
@@ -44,12 +44,11 @@ pub fn newton(f: RealFn, x0: f32, threshold: f32) -> f32 {
     curr = curr - f(curr)/deriv_approx(f, curr, EPSILON);
     let next_val = f(curr);
     if next_val.abs() > curr_val.abs() {
-      // Diverging.
-      break;
+      return None;
     }
     curr_val = next_val;
   }
-  curr
+  Some(curr)
 }
 
 pub fn deriv_approx(f: RealFn, x: f32, epsilon: f32) -> f32 {

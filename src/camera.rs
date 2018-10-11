@@ -1,10 +1,11 @@
 use vector::vector::Vector;
 use vector::ray::Ray;
 
+#[derive(Clone, Copy)]
 pub struct Camera {
-  position: Vector,
-  z_near: f32,
-  vert_fov: f32,
+// TODO  position: Vector,
+  pub z_near: f32,
+  pub vert_fov: f32,
 }
 
 impl Camera {

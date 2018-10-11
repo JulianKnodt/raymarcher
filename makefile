@@ -1,5 +1,11 @@
-build:
-	rustc main.rs
+check:
+	cargo check
 
-run: build
-	./main
+test:
+	cargo test -- --nocapture
+
+first:
+	cargo run --bin first
+
+release:
+	cargo build --release
