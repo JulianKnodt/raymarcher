@@ -11,8 +11,8 @@ use raymarcher::light::{Light, illum_out};
 use image::{ImageBuffer};
 
 fn main() {
-  let width = 800;
-  let height = 800;
+  let width = 2000;
+  let height = 2000;
   let cam = Camera{
     z_near: 1.0,
     vert_fov: 32.0,
@@ -31,11 +31,19 @@ fn main() {
   //let white = Vector{x: 1.0, y: 1.0, z: 1.0};
   let black = Vector{x: 0.0, y: 0.0, z: 0.0};
 
+  const NUM_RAYS: i32 = 4;
   ImageBuffer::from_fn(width as u32, height as u32, |x, y| {
-    let ray = cam.get_ray_to(x as f32, y as f32, width, height);
-    match intersects(ray, &objects)  {
-      None => black.to_color(), // empty background
-      Some(inter) => illum_out(&inter, &objects, &lights).to_color(),
-    }
+//    let ray = cam.get_ray_to(x as f32, y as f32, width, height);
+    let sum = cam.get_rays_to(x as f32, y as f32, width, height, NUM_RAYS)
+      .iter()
+      .map(|ray| {
+        match intersects(*ray, &objects)  {
+          None => black, // empty background
+          Some(inter) => illum_out(&inter, &objects, &lights, 0),
+        }
+      })
+      .fold(Vector::new(0.0, 0.0, 0.0), |acc, next| acc + next);
+
+      (sum * (1.0 / (NUM_RAYS as f32))).to_color()
   }).save("out.png").unwrap();
 }

@@ -136,6 +136,10 @@ impl Vector {
   pub fn normalized(self) -> Vector {
     self/self.sqr_magn().sqrt()
   }
+  pub fn normalize_with(self, o: f32) -> (Vector, f32) {
+    let comp = (self.dot(&self) + o * o).sqrt();
+    (self/comp, o/comp)
+  }
   pub fn inv(self) -> Vector {
     self * (-1.0)
   }

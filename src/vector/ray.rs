@@ -6,7 +6,7 @@ pub struct Ray {
   pub direction: Vector,
 }
 
-const SHIFT_EPSILON: f32 = 0.0001;
+const SHIFT_EPSILON: f32 = 0.00001;
 impl Ray {
   pub fn at(&self, t: f32) -> Vector {
     return self.position + self.direction * t;
@@ -17,7 +17,7 @@ impl Ray {
       direction: (to - pos).normalized(),
     }
   }
-  pub fn eps_shift(&self) -> Ray {
+  pub fn eps_shift(self) -> Ray {
     Ray{
       position: self.at(SHIFT_EPSILON),
       direction: self.direction,

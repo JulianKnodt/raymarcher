@@ -20,17 +20,17 @@ impl Surface {
     }
   }
 
-  pub fn finite_sd(&self, r: &Ray, s_n: &Ray) -> Vector {
+  pub fn finite_sd(&self, r: &Ray, s_n: &Ray) -> (Vector, Option<Vec<Ray>>) {
     match self {
-      Surface::Empty => Vector::new(1.0,1.0,1.0),
-      Surface::Lambertian(color, albedo) => color * (1.0/albedo),
+      Surface::Empty => (Vector::new(1.0,1.0,1.0), None),
+      Surface::Lambertian(color, albedo) => (color * (1.0/albedo), None),
       Surface::Metal(color) => {
         let reflected_direction = r.direction.reflect_across(&s_n.direction);
         let reflected = Ray{
           position: s_n.position,
           direction: reflected_direction.normalized(),
         };
-        color.clone()
+        (color.clone(), Some(vec!(reflected)))
       },
     }
   }

@@ -9,7 +9,10 @@ use material::Surface;
 use std::f32;
 
 pub enum SDF {
-  Sphere(Vector, f32, Surface),
+  Sphere(Vector, f32, Surface), // location and radius
+
+  // TODO Broken somehow
+  Plane(Vector, f32, Surface), // normal and d in the planar equation
 }
 
 pub fn generate_sphere(around: Vector, nearness: f32, rad: f32, mat: Surface) -> SDF {
@@ -17,21 +20,22 @@ pub fn generate_sphere(around: Vector, nearness: f32, rad: f32, mat: Surface) ->
     rand::random::<f32>() * rad, mat)
 }
 
+
 impl SDF {
   pub fn dist(&self, v: &Vector) -> f32 {
     match self {
      SDF::Sphere(loc, rad, _) => (loc - v).sqr_magn().sqrt() - rad,
+     SDF::Plane(norm, d, _) => v.dot(norm) + d,
     }
   }
   pub fn get_surface(&self) -> Surface {
     match self {
-      SDF::Sphere(_, _, s) => *s,
+      SDF::Sphere(_, _, s) | SDF::Plane(_, _, s)=> *s,
     }
   }
-  pub fn loc(&self) -> Vector {
-    match self {
-      SDF::Sphere(loc, _, _) => *loc,
-    }
+  pub fn make_plane(v: Vector, o: f32, mat: Surface) -> SDF {
+    let (n, w) = v.normalize_with(o);
+    SDF::Plane(n, w, mat)
   }
 }
 

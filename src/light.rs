@@ -2,7 +2,7 @@ use intersection::Intersection;
 use vector::vector::Vector;
 use vector::generate::generate;
 use vector::ray::Ray;
-use sdf::{SDF, find_intersection};
+use sdf::{SDF, find_intersection, intersects};
 use std::f32;
 
 pub enum Light {
@@ -23,36 +23,50 @@ impl Light {
 
   pub fn position(&self) -> Vector {
     match self {
-      Light::Point(pos, _, _) => *pos,
+      Light::Point(loc, _, _) => *loc,
     }
   }
 }
 
 
-pub fn illum_out(i: &Intersection, objects: &Vec<SDF>, lights: &Vec<Light>) -> Vector {
+const MAX_RECUR_DEPTH: i32 = 3;
+pub fn illum_out(i: &Intersection, objects: &Vec<SDF>, lights: &Vec<Light>, recur: i32)
+  -> Vector {
   let inter_pt = i.contact_point();
 
-  lights.iter()
-    .fold(i.surface.emitted(), |acc, light| {
-      if visible(light.position(), inter_pt, objects) {
+  lights.iter().fold(i.surface.emitted(), |acc, light| {
+      if visible(inter_pt, light.position(), objects) {
         let incoming_dir = (inter_pt - light.position()).normalized();
         let bi = light.biradiance(&inter_pt);
-        let color = i.surface.finite_sd(&i.incident_ray, &i.surface_normal());
+        let (color, reflections) = i.surface.finite_sd(&i.incident_ray, &i.surface_normal());
         let comp = color * bi * i.normal.dot(&incoming_dir).abs();
-        (acc + comp) * (0.5)
+        match reflections {
+          None => (acc + comp) * (0.5),
+          _ if recur >= MAX_RECUR_DEPTH => (acc + comp) * (0.5),
+          Some(bounces) => {
+            let sub = bounces.iter().filter_map(|b| intersects(b.eps_shift(), objects))
+              .map(|sub_i| illum_out(&sub_i, objects, lights, recur + 1))
+              .fold(Vector::new(0.0, 0.0, 0.0), |acc, n| acc + n);
+            (sub + acc + comp) * (1.0 / ((2 +  bounces.len()) as f32))
+          },
+        }
       } else {
         acc
       }
     })
 }
 
-fn visible(from: Vector, to: Vector, objects: &Vec<SDF>) -> bool {
-  let dist = (from - to).sqr_magn().sqrt();
+fn visible(to: Vector, from: Vector, objects: &Vec<SDF>) -> bool {
+  // the subtraction is important because then it would might intersect the sdf it originally
+  // hit
+
   let ray = Ray::from(from, to).eps_shift();
+  let dist = (ray.position - to).sqr_magn().sqrt() - 0.001;
+
   objects.iter().find(|sdf| {
     match find_intersection(sdf, &ray) {
       None => false,
-      Some(t) => t < dist,
+      Some(t) => t <= dist,
     }
   }).is_none()
 }
