@@ -63,7 +63,4 @@ fn test_bisection() {
   println!("{}", bisection(&test_fn, 3.0, 3.5, 0.01));
 }
 
-// pub fn newton(opt: &Fn(f32) -> f32) -> f32 {
-//
-// }
 

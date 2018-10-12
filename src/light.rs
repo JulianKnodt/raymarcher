@@ -18,7 +18,7 @@ impl Light {
   }
 
   pub fn generate() -> Light {
-    Light::Point(generate() * 20.0, Vector::new(1.0, 1.0, 1.0), 5000.0)
+    Light::Point(generate() * 20.0, Vector::new(1.0, 1.0, 1.0), 1000.0)
   }
 
   pub fn position(&self) -> Vector {

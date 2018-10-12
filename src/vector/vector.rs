@@ -136,6 +136,19 @@ impl Vector {
   pub fn normalized(self) -> Vector {
     self/self.sqr_magn().sqrt()
   }
+  pub fn abs(self) -> Vector {
+    Vector{
+      x: self.x.abs(),
+      y: self.y.abs(),
+      z: self.z.abs(),
+    }
+  }
+  fn sum_components(&self) -> f32 {
+    self.x + self.y + self.z
+  }
+  pub fn p_norm(&self, p: f32) -> f32 {
+    self.pow(p).abs().sum_components().powf(1.0/p)
+  }
   pub fn normalize_with(self, o: f32) -> (Vector, f32) {
     let comp = (self.dot(&self) + o * o).sqrt();
     (self/comp, o/comp)

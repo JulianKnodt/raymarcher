@@ -5,7 +5,7 @@ use vector::vector::Vector;
 use vector::generate::generate;
 use std::f32;
 
-#[derive(Clone, Copy, PartialEq)]
+#[derive(Clone, Copy, PartialEq, Debug)]
 pub enum Surface {
   Empty,
   Metal(Vector),

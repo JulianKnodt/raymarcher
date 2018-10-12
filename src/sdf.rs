@@ -8,11 +8,11 @@ use material::Surface;
 
 use std::f32;
 
+#[derive(Debug)]
 pub enum SDF {
   Sphere(Vector, f32, Surface), // location and radius
-
-  // TODO Broken somehow
-  Plane(Vector, f32, Surface), // normal and d in the planar equation
+  Or(Box<SDF>, Box<SDF>), // an or of two SDFs
+  And(Box<SDF>, Box<SDF>),
 }
 
 pub fn generate_sphere(around: Vector, nearness: f32, rad: f32, mat: Surface) -> SDF {
@@ -20,22 +20,50 @@ pub fn generate_sphere(around: Vector, nearness: f32, rad: f32, mat: Surface) ->
     rand::random::<f32>() * rad, mat)
 }
 
-
 impl SDF {
   pub fn dist(&self, v: &Vector) -> f32 {
     match self {
      SDF::Sphere(loc, rad, _) => (loc - v).sqr_magn().sqrt() - rad,
-     SDF::Plane(norm, d, _) => v.dot(norm) + d,
+     SDF::Or(a, b) => (*a).dist(v).min((*b).dist(v)),
+     SDF::And(a, b) => (*a).dist(v).max((*b).dist(v)),
     }
   }
   pub fn get_surface(&self) -> Surface {
     match self {
-      SDF::Sphere(_, _, s) | SDF::Plane(_, _, s)=> *s,
+      SDF::Sphere(_, _, s) => *s,
+
+      // TODO think of something here
+      SDF::Or(a, _) => (*a).get_surface(),
+      SDF::And(a, _) => (*a).get_surface(),
     }
   }
-  pub fn make_plane(v: Vector, o: f32, mat: Surface) -> SDF {
-    let (n, w) = v.normalize_with(o);
-    SDF::Plane(n, w, mat)
+
+  pub fn swap(self) -> SDF {
+    match self {
+      SDF::Or(a, b) => SDF::Or(b,a),
+      SDF::And(a, b) => SDF::And(b,a),
+      _ => self
+    }
+  }
+
+  // Only returns option SDF if objects is empty.
+  pub fn fold_into_or(objects: Vec<SDF>) -> Option<SDF> {
+    let mut iter = objects.into_iter();
+    match iter.next() {
+      None => None,
+      Some(sdf) =>
+        Some(iter.fold(sdf, |res, next| SDF::Or(Box::new(next), Box::new(res.swap())))),
+    }
+  }
+
+  pub fn unfold(self, mut into: Vec<SDF>) -> Vec<SDF> {
+    match self {
+      SDF::Or(a, b) | SDF::And(a, b) => a.unfold(b.unfold(into)),
+      prim => {
+        into.push(prim);
+        into
+      },
+    }
   }
 }
 
@@ -45,11 +73,12 @@ pub fn intersects(r: Ray, sdfs: &Vec<SDF>) -> Option<Intersection> {
   let mut nearest = None;
   for sdf in sdfs {
     match find_intersection(sdf, &r) {
+      None => (),
       Some(t) if t < min && t > 0.0 => {
         min = t;
         nearest = Some(sdf);
       },
-      _ => (),
+      Some(_) => (), // debugging branch
     }
   };
   match nearest {
